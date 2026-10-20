@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-900">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioSystem Pro v5.0 - Control Biométrico</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- NAVBAR NAVEGACIÓN -->
+    <nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+                        <i class="bi bi-cpu-fill text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">BioSystem <span class="text-indigo-400 text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20">v5.0 PRO</span></span>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-3 bg-slate-800/60 px-3.5 py-1.5 rounded-full border border-slate-700/50">
+                        <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                        <span class="text-xs font-medium text-slate-300">
+                            {{ session.admin_nombre if session.admin_nombre else 'Admin' }}
+                        </span>
+                        <span class="text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/30">MASTER</span>
+                    </div>
+                    <a href="/logout" class="text-slate-400 hover:text-rose-400 text-sm transition-colors duration-200 p-2 rounded-lg hover:bg-slate-800">
+                        <i class="bi bi-box-arrow-right text-lg"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- MENSAJES FLASH -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="p-4 rounded-xl border flex items-center justify-between bg-slate-800/90 border-slate-700 text-slate-200 shadow-xl">
+                        <div class="flex items-center space-x-3">
+                            <i class="bi bi-info-circle-fill text-indigo-400 text-xl"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- METRICAS / CARDS KPI -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <!-- Card 1 -->
+            <div class="glass-card rounded-2xl p-5 relative overflow-hidden group hover:border-slate-700 transition-all">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Total Usuarios</p>
+                        <h3 class="text-3xl font-bold text-white mt-1">{{ stats.total_usuarios }}</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center text-xl">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-center text-xs text-slate-400">
+                    <span class="text-indigo-400 font-medium mr-1">{{ stats.admins }} Admins</span> registrados
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="glass-card rounded-2xl p-5 relative overflow-hidden group hover:border-slate-700 transition-all">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Asistencias Hoy</p>
+                        <h3 class="text-3xl font-bold text-emerald-400 mt-1">{{ stats.asistencias_hoy }}</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-xl">
+                        <i class="bi bi-check2-circle"></i>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-center text-xs text-slate-400">
+                    <span class="text-emerald-400 font-medium mr-1">Activo</span> en el sistema
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="glass-card rounded-2xl p-5 relative overflow-hidden group hover:border-slate-700 transition-all">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Estado del Modelo IA</p>
+                        <h3 class="text-xl font-bold mt-1 {{ 'text-emerald-400' if stats.modelo_listo else 'text-amber-400' }}">
+                            {{ 'Entrenado' if stats.modelo_listo else 'Pendiente' }}
+                        </h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center text-xl">
+                        <i class="bi bi-memory"></i>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-center text-xs text-slate-400">
+                    LBPH Face Recognizer
+                </div>
+            </div>
+
+            <!-- Card 4 Acceso rápido -->
+            <div class="rounded-2xl p-5 bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-lg shadow-indigo-600/20 flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-indigo-200">Terminal Activo</span>
+                    <i class="bi bi-qr-code-scan text-xl"></i>
+                </div>
+                <a href="/reconocer" class="mt-4 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-semibold py-2.5 px-4 rounded-xl text-center text-sm transition-all duration-200 flex items-center justify-center space-x-2 border border-white/20">
+                    <span>Pantalla de Asistencia</span>
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- SECCIÓN PRINCIPAL: TABLA Y HISTORIAL -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- LISTADO DE USUARIOS (2 COLS) -->
+            <div class="lg:col-span-2 glass-card rounded-2xl p-6 space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+                            <span>Usuarios Registrados</span>
+                            <span class="text-xs bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-full border border-slate-700">{{ usuarios|length }}</span>
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Gestión de datos biométricos de acceso</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <!-- Buscador -->
+                        <div class="relative">
+                            <i class="bi bi-search absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+                            <input type="text" id="inputBuscador" placeholder="Buscar usuario..." class="bg-slate-800/80 border border-slate-700 text-slate-200 text-xs rounded-xl pl-9 pr-4 py-2 focus:outline-none focus:border-indigo-500 w-44 sm:w-56 transition-all">
+                        </div>
+                        <a href="/crear" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs py-2 px-3.5 rounded-xl transition-colors flex items-center space-x-1.5 shadow-md shadow-emerald-600/20">
+                            <i class="bi bi-person-plus-fill"></i>
+                            <span>Nuevo</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- TABLA -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                        <thead class="text-xs uppercase bg-slate-800/50 text-slate-400 border-b border-slate-800">
+                            <tr>
+                                <th class="py-3 px-4">Biometría</th>
+                                <th class="py-3 px-4">Nombre</th>
+                                <th class="py-3 px-4">Rol</th>
+                                <th class="py-3 px-4">Fecha Registro</th>
+                                <th class="py-3 px-4 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/60" id="tablaUsuarios">
+                            {% for u in usuarios %}
+                            <tr class="hover:bg-slate-800/30 transition-colors group">
+                                <td class="py-3 px-4">
+                                    {% if u.imagen_src %}
+                                    <img src="{{ u.imagen_src }}" class="w-10 h-10 rounded-full object-cover border border-slate-700 group-hover:border-indigo-500 transition-colors">
+                                    {% else %}
+                                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-500">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-4 font-semibold text-slate-100 font-usuario">{{ u.nombre }}</td>
+                                <td class="py-3 px-4">
+                                    {% if u.es_admin %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">ADMIN</span>
+                                    {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-400 border border-slate-700">Usuario</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-4 text-xs text-slate-400">{{ u.fecha_fmt }}</td>
+                                <td class="py-3 px-4 text-right space-x-1">
+                                    <a href="/editar/{{ u.id }}" class="inline-flex p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-lg transition-colors" title="Editar">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <a href="/eliminar/{{ u.id }}" onclick="return confirm('¿Confirma eliminar este usuario?')" class="inline-flex p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-8 text-slate-500">Sin usuarios registrados.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SIDEBAR HISTORIAL DE ACTIVIDAD (1 COL) -->
+            <div class="glass-card rounded-2xl p-6 space-y-5">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                    <div class="flex items-center space-x-2">
+                        <i class="bi bi-clock-history text-indigo-400"></i>
+                        <h3 class="font-bold text-white text-base">Últimos Accesos</h3>
+                    </div>
+                    <a href="/exportar_pdf" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold py-1.5 px-3 rounded-xl transition-all flex items-center space-x-1">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                        <span>PDF</span>
+                    </a>
+                </div>
+
+                <div class="space-y-3">
+                    {% for h in historial %}
+                    <div class="p-3 rounded-xl bg-slate-800/40 border border-slate-800 flex items-center justify-between hover:border-slate-700 transition-colors">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-sm">
+                                <i class="bi bi-check-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-200">{{ h.nombre }}</p>
+                                <p class="text-[10px] text-slate-500">{{ h.fecha_fmt }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-xs text-slate-500 py-6">Sin registros de acceso recientes.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Búsqueda interactiva sin recarga de página
+        document.getElementById('inputBuscador').addEventListener('keyup', function() {
+            const query = this.value.toLowerCase();
+            const filas = document.querySelectorAll('#tablaUsuarios tr');
+            
+            filas.forEach(fila => {
+                const nombreEl = fila.querySelector('.font-usuario');
+                if (nombreEl) {
+                    const nombre = nombreEl.textContent.toLowerCase();
+                    fila.style.display = nombre.includes(query) ? '' : 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

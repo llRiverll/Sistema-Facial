@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-900">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioSystem Pro - Editar Usuario</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap JS Bundle necesario para el componente de pestañas (nav-pills) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="max-w-xl w-full mx-auto">
+        
+        <!-- ENCABEZADO -->
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center text-slate-950 font-bold shadow-lg shadow-amber-500/20">
+                    <i class="bi bi-pencil-square text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white">Editar Usuario #{{ usuario.id }}</h1>
+                    <p class="text-xs text-slate-400">Actualiza los datos o la biometría facial</p>
+                </div>
+            </div>
+            <a href="/dashboard" class="text-slate-400 hover:text-white text-xs bg-slate-800/80 border border-slate-700/80 px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5">
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver</span>
+            </a>
+        </div>
+
+        <!-- TARJETA PRINCIPAL -->
+        <div class="glass-card rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
+            
+            <!-- PESTAÑAS DE NAVEGACIÓN -->
+            <div class="grid grid-cols-2 gap-2 bg-slate-900/80 p-1.5 rounded-xl border border-slate-800" id="pills-tab" role="tablist">
+                <button class="nav-link active py-2.5 px-4 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-2 bg-indigo-600 text-white shadow-md" id="pills-actual-tab" data-bs-toggle="pill" data-bs-target="#pills-actual" type="button" role="tab">
+                    <i class="bi bi-image"></i>
+                    <span>Foto Actual</span>
+                </button>
+                <button class="nav-link py-2.5 px-4 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-2 text-slate-400 hover:text-white" id="pills-nueva-tab" data-bs-toggle="pill" data-bs-target="#pills-nueva" type="button" role="tab">
+                    <i class="bi bi-camera-fill"></i>
+                    <span>Tomar Nueva</span>
+                </button>
+            </div>
+
+            <div class="tab-content" id="pills-tabContent">
+                
+                <!-- PESTAÑA 1: FOTO ACTUAL -->
+                <div class="tab-pane fade show active text-center p-6 bg-slate-900/50 rounded-xl border border-slate-800" id="pills-actual" role="tabpanel">
+                    {% if usuario.imagen_src %}
+                    <img src="{{ usuario.imagen_src }}" class="rounded-xl shadow-lg mx-auto object-cover max-h-64 border border-slate-700">
+                    {% else %}
+                    <div class="py-8 text-slate-500 space-y-2">
+                        <i class="bi bi-person-x text-4xl"></i>
+                        <p class="text-xs">Este usuario no tiene foto registrada.</p>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- PESTAÑA 2: TOMAR NUEVA FOTO -->
+                <div class="tab-pane fade" id="pills-nueva" role="tabpanel">
+                    <div class="relative rounded-xl overflow-hidden bg-black border border-slate-800 shadow-inner aspect-video flex items-center justify-center mb-4">
+                        <img id="vista_camara" src="" class="w-full h-full object-cover">
+                        <canvas id="canvas_foto" class="w-full h-full object-cover" style="display:none;"></canvas>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 gap-2">
+                        <button type="button" id="btn_capturar" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 px-4 rounded-xl transition-all flex items-center justify-center space-x-2">
+                            <i class="bi bi-camera-fill"></i>
+                            <span>CAPTURAR NUEVA FOTO</span>
+                        </button>
+                        <button type="button" id="btn_retomar" class="w-full bg-slate-800 hover:bg-slate-700 text-rose-400 border border-rose-500/30 font-semibold py-2.5 px-4 rounded-xl transition-all flex items-center justify-center space-x-2" style="display: none;">
+                            <i class="bi bi-arrow-repeat"></i>
+                            <span>REPETIR CAPTURA</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- FORMULARIO DE ACTUALIZACIÓN -->
+            <form action="/actualizar_usuario" method="POST" class="space-y-4 pt-2 border-t border-slate-800">
+                <input type="hidden" name="id_usuario" value="{{ usuario.id }}">
+                <input type="hidden" name="foto_base64" id="foto_base64">
+
+                <div>
+                    <label for="nombre" class="block text-xs font-medium text-slate-300 mb-1.5">Nombre Completo</label>
+                    <div class="relative">
+                        <i class="bi bi-person absolute left-3.5 top-3 text-slate-500"></i>
+                        <input type="text" id="nombre" name="nombre" value="{{ usuario.nombre }}" required class="w-full bg-slate-900/90 border border-slate-700 text-slate-100 text-sm rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-indigo-500 transition-all">
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3 pt-2">
+                    <a href="/dashboard" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-3 px-4 rounded-xl text-center text-xs transition-all flex items-center justify-center space-x-1 border border-slate-700">
+                        <span>Cancelar</span>
+                    </a>
+                    <button type="submit" id="btn_guardar" class="w-2/3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center space-x-2 text-xs">
+                        <i class="bi bi-save-fill"></i>
+                        <span>GUARDAR CAMBIOS</span>
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <script>
+        const tabNueva = document.getElementById('pills-nueva-tab');
+        const imgCamara = document.getElementById('vista_camara');
+        const canvas = document.getElementById('canvas_foto');
+        const btnCap = document.getElementById('btn_capturar');
+        const btnRet = document.getElementById('btn_retomar');
+        const btnGuardar = document.getElementById('btn_guardar');
+        const inputB64 = document.getElementById('foto_base64');
+        let streamActivo = false;
+
+        // Manejo visual de pestañas activas
+        const tabs = document.querySelectorAll('#pills-tab button');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                tabs.forEach(t => t.classList.remove('bg-indigo-600', 'text-white', 'shadow-md'));
+                tabs.forEach(t => t.classList.add('text-slate-400'));
+                this.classList.add('bg-indigo-600', 'text-white', 'shadow-md');
+                this.classList.remove('text-slate-400');
+            });
+        });
+
+        tabNueva.addEventListener('shown.bs.tab', () => {
+            if (!streamActivo) {
+                imgCamara.src = "{{ url_for('video_feed', modo='registro') }}";
+                streamActivo = true;
+            }
+        });
+
+        btnCap.addEventListener('click', () => {
+            canvas.width = imgCamara.naturalWidth || 640;
+            canvas.height = imgCamara.naturalHeight || 480;
+            canvas.getContext('2d').drawImage(imgCamara, 0, 0, canvas.width, canvas.height);
+            inputB64.value = canvas.toDataURL('image/jpeg', 0.95);
+
+            imgCamara.style.display = 'none';
+            canvas.style.display = 'block';
+            btnCap.style.display = 'none';
+            btnRet.style.display = 'flex';
+            
+            btnGuardar.className = 'w-2/3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center space-x-2 text-xs';
+            btnGuardar.innerHTML = '<i class="bi bi-check-circle-fill"></i><span>GUARDAR CON NUEVA FOTO</span>';
+        });
+
+        btnRet.addEventListener('click', () => {
+            imgCamara.style.display = 'block';
+            canvas.style.display = 'none';
+            btnCap.style.display = 'flex';
+            btnRet.style.display = 'none';
+            inputB64.value = '';
+
+            btnGuardar.className = 'w-2/3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center space-x-2 text-xs';
+            btnGuardar.innerHTML = '<i class="bi bi-save-fill"></i><span>GUARDAR CAMBIOS</span>';
+        });
+    </script>
+</body>
+</html>
